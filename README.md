@@ -38,7 +38,7 @@ class Test:
         raise falcon_rpc.RPCError('dummy_error_code')
 
     def fatal(self, req):
-        # /test.unhandled
+        # /test.fatal
         not_a_dict = 1
         not_a_dict['nope'] = 2  # pylint: disable=unsupported-assignment-operation  # noqa
 
