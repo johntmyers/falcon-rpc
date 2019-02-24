@@ -28,6 +28,10 @@ class Test:
         # setting a warning even though the request was handled
         req.set_warning('some_warning')
 
+    def redirect(self, req):
+        # /test.redirect
+        raise falcon_rpc.RPCRedirect('http://www.google.com')
+
 
 class Another:
 

@@ -109,7 +109,7 @@ class RPCRequest:
             resp_body (dict): the response that will be sent
                 to the caller. Will be serialized to JSON
                 via middleware
- 
+
             warning (str): an optional warning that can be
                 set when returning data to the caller
         """
@@ -186,6 +186,8 @@ class RPCRouter:
             # check if we actually raised RPCError
             if e.__class__.__name__ == RPCError.__name__:
                 raise
+            if e.__class__.__name__ == RPCRedirect.__name__:
+                raise
             else:
                 logger.exception('Unhandled exception!')
                 raise RPCError(errors.FATAL)
@@ -212,6 +214,14 @@ class RPCError(falcon.HTTPError):
         obj['ok'] = False
         obj['error'] = self.err_string
         return obj
+
+
+class RPCRedirect(falcon.HTTPFound):
+    """Overload Falcon's HTTPFound
+    so we can support redirects from
+    RPC calls
+    """
+    pass
 
 
 class RPCResponseInterceptor:
