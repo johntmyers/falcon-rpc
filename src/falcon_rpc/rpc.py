@@ -1,5 +1,6 @@
 """Falcon RPC"""
 import json
+import copy
 
 import falcon
 from falcon_cors import CORS
@@ -7,8 +8,10 @@ from falcon_cors import CORS
 import falcon_rpc.errors as errors
 from falcon_rpc.logger_ext import get_logger
 
-
 logger = get_logger(__name__)
+
+
+URL_ENCODED = 'urlencoded_string'
 
 
 def _json_error_serializer(req, resp, exception):
@@ -31,6 +34,12 @@ def _get_post_data(req, resp, resource, params):
                 req.context['data'] = json.load(req.stream)
             except json.JSONDecodeError:
                 raise RPCError(errors.BAD_JSON)
+    elif (req.content_type and
+          'application/x-www-form-urlencoded' in req.content_type and
+          req.content_length):
+        body = req.stream.read(req.content_length).decode()
+        req.context[URL_ENCODED] = copy.deepcopy(body)
+        req.context['data'] = falcon.uri.parse_query_string(body)
     else:
         req.context['data'] = req.params
 
@@ -57,7 +66,9 @@ class RPC:
         )
         self.falcon = falcon.API(
             middleware=[cors.middleware, RPCResponseInterceptor()])
-        self.falcon.req_options.auto_parse_form_urlencoded = True
+        # NOTE(jtm): we manually do this so we can preserve
+        # the original url encoded string if needed
+        self.falcon.req_options.auto_parse_form_urlencoded = False
         self.falcon.add_route('/{method}', self.router)
         self.falcon.set_error_serializer(_json_error_serializer)
 
@@ -81,6 +92,7 @@ class RPCRequest:
 
     __slots__ = (
         'params',
+        'urlencoded_string',
         'req',
         'resp_body',
         'warning',
@@ -119,6 +131,13 @@ class RPCRequest:
         self.req = req
         self.resp_body = None
         self.warning = None
+        self.urlencoded_string = None
+
+        # save off our original x-www-form-urlencoded string
+        try:
+            self.urlencoded_string = self.req.context[URL_ENCODED]
+        except KeyError:
+            pass
 
     def _fini(self):
         if not self.resp_body:
