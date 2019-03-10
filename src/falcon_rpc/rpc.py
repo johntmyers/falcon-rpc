@@ -180,6 +180,9 @@ class RPCRouter:
         except ValueError:
             raise RPCError(errors.BAD_METHOD)
 
+        if method.startswith('_'):
+            raise RPCError(errors.BAD_METHOD)
+
         try:
             family_inst = self.families[f_name.lower()]
         except KeyError:
@@ -205,7 +208,7 @@ class RPCRouter:
             # check if we actually raised RPCError
             if e.__class__.__name__ == RPCError.__name__:
                 raise
-            if e.__class__.__name__ == RPCRedirect.__name__:
+            if e.__class__.__name__ == RPCRedirect.__name__:  # pragma: no cover  # noqa
                 raise
             else:
                 logger.exception('Unhandled exception!')
