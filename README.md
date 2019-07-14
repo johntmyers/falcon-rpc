@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/johntmyers/falcon-rpc.png?branch=master)](https://travis-ci.org/johntmyers/falcon-rpc)
+[![Build Status](https://travis-ci.com/johntmyers/falcon-rpc.png?branch=master)](https://travis-ci.com/johntmyers/falcon-rpc)
 
 
 # Falcon RPC
