@@ -31,13 +31,13 @@ def _get_post_data(req, resp, resource, params):
             raise RPCError(errors.MISSING_BODY)
         else:
             try:
-                req.context['data'] = json.load(req.stream)
+                req.context['data'] = json.load(req.bounded_stream)
             except json.JSONDecodeError:
                 raise RPCError(errors.BAD_JSON)
     elif (req.content_type and
           'application/x-www-form-urlencoded' in req.content_type and
           req.content_length):
-        body = req.stream.read(req.content_length).decode()
+        body = req.bounded_stream.read(req.content_length).decode()
         req.context[URL_ENCODED] = copy.deepcopy(body)
         req.context['data'] = falcon.uri.parse_query_string(body)
     else:
@@ -83,11 +83,10 @@ class RPC:
 class RPCRequest:
     """Representation of an HTTP RPC request
 
-    This will contain information stuch as the
-    method family, the method, the parsed payload
-    params and the original Falcon HTTP Request
-    so all that information is available to
-    the RPC handlers.
+    This will contain information such as
+    the parsed payload params and the original
+    Falcon HTTP Request so all that information
+    is available to the RPC handlers.
     """
 
     __slots__ = (
@@ -95,12 +94,10 @@ class RPCRequest:
         'urlencoded_string',
         'req',
         'resp_body',
-        'warning',
-        'family',
-        'method'
+        'warning'
     )
 
-    def __init__(self, familty, method, params, req: falcon.Request):
+    def __init__(self, params, req: falcon.Request):
         """Create a RPC Request
 
         An instance of this object will be passed
@@ -110,23 +107,14 @@ class RPCRequest:
         as the return value to the caller.
 
         Attributes:
-            family (str): method family
-
-            method (str): method
-
             params (dict): parse GET params or POST body params
-
             req (Request): original Falcon Request object
-
             resp_body (dict): the response that will be sent
                 to the caller. Will be serialized to JSON
                 via middleware
-
             warning (str): an optional warning that can be
                 set when returning data to the caller
         """
-        self.family = None
-        self.method = None
         self.params = params
         self.req = req
         self.resp_body = None
@@ -194,8 +182,6 @@ class RPCRouter:
             raise RPCError(errors.UNK_METHOD)
 
         rpc_req = RPCRequest(
-            f_name,
-            method,
             req.context['data'],
             req
         )

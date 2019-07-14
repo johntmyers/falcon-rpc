@@ -64,7 +64,7 @@ def test_bad_method_str(client):
     check = {'ok': False, 'error': falcon_rpc.BAD_METHOD}
     assert client.simulate_get('/bad_call').json == check
     assert client.simulate_get('/too.many.dots').json == check
-    assert client.simulate_get('/family._private').json == check
+    assert client.simulate_get('/test._private').json == check
 
 
 def test_get_family_dne(client):
