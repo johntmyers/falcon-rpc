@@ -134,6 +134,9 @@ class RPCRequest:
         if self.warning:
             self.resp_body['warning'] = self.warning
 
+    def get_header(self, name, default=None):
+        return self.req.get_header(name, default=default)
+
     def set_warning(self, warning):
         """Set a warning message that will
         be added to the response body just

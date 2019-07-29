@@ -31,6 +31,13 @@ class Test:
         req.set_warning('does_not_matter')
         raise falcon_rpc.RPCError('another_error')
 
+    def echo_header(self, req):
+        req.resp_body = {'value': req.get_header('X-Header-Test')}
+
+    def echo_header_miss(self, req):
+        req.resp_body = {'value': req.get_header(
+            'X-Header-Test', default='nope')}
+
 
 # test API
 def create():
@@ -161,3 +168,21 @@ def test_ok_with_warning(client):
 def test_error_with_warning(client):
     check = {'ok': False, 'error': 'another_error'}
     assert client.simulate_get('/test.warn_error').json == check
+
+
+def test_get_header(client):
+    check = {'ok': True, 'value': 'this_is_a_test'}
+    assert client.simulate_get(
+        '/test.echo_header',
+        headers={'X-Header-Test': 'this_is_a_test'}
+    ).json == check
+    assert client.simulate_get(
+        '/test.echo_header',
+        headers={'x-header-test': 'this_is_a_test'}
+    ).json == check
+
+    check = {'ok': True, 'value': 'nope'}
+    assert client.simulate_get(
+        '/test.echo_header_miss',
+        headers={'x-header-miss': 'whatever'}
+    ).json == check

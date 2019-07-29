@@ -8,7 +8,7 @@ with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
 
 setup(
     name='falcon-rpc',
-    version='0.4.0',
+    version='0.5.0',
     description='RPC API based on the Falcon Framework',
     long_description=long_description,
     long_description_content_type='text/markdown',
